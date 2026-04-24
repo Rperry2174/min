@@ -2,12 +2,12 @@
   "name": "electron-to-tauri-migration",
   "repoUrl": "https://github.com/Rperry2174/min.git",
   "startingRef": "cursor/tauri-migration-integration",
-  "defaultModel": "claude-4-sonnet-thinking",
+  "defaultModel": "claude-sonnet-4-6",
   "tasks": [
     {
       "id": "root-architect",
       "branchName": "cursor/tauri-root-architecture",
-      "model": "claude-4-sonnet-thinking",
+      "model": "claude-sonnet-4-6",
       "dependsOn": [],
       "validation": [
         "npm test",
@@ -18,7 +18,7 @@
     {
       "id": "tauri-foundation",
       "branchName": "cursor/tauri-foundation",
-      "model": "claude-4-sonnet-thinking",
+      "model": "claude-sonnet-4-6",
       "dependsOn": [
         "root-architect"
       ],
@@ -30,7 +30,7 @@
     {
       "id": "runtime-bridge",
       "branchName": "cursor/tauri-runtime-bridge",
-      "model": "claude-4-sonnet-thinking",
+      "model": "claude-sonnet-4-6",
       "dependsOn": [
         "tauri-foundation"
       ],
@@ -44,7 +44,7 @@
     {
       "id": "webview-spike",
       "branchName": "cursor/tauri-webview-spike",
-      "model": "claude-4-sonnet-thinking",
+      "model": "claude-sonnet-4-6",
       "dependsOn": [
         "runtime-bridge"
       ],
@@ -57,7 +57,7 @@
     {
       "id": "feature-clusters",
       "branchName": "cursor/tauri-feature-clusters",
-      "model": "claude-4-sonnet-thinking",
+      "model": "claude-sonnet-4-6",
       "dependsOn": [
         "webview-spike"
       ],
@@ -72,7 +72,7 @@
     {
       "id": "verification-demo",
       "branchName": "cursor/tauri-verification-demo",
-      "model": "claude-4-sonnet-thinking",
+      "model": "claude-sonnet-4-6",
       "dependsOn": [
         "feature-clusters"
       ],

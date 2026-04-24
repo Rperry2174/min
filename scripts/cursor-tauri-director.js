@@ -231,7 +231,9 @@ async function runDirector () {
   }
 
   const models = await cursorRequest(apiKey, 'GET', '/v1/models')
-  const availableModels = new Set(models.items || [])
+  const availableModels = new Set((models.items || []).map(function (item) {
+    return typeof item === 'string' ? item : item.id
+  }))
   const ledger = loadLedger(args.ledgerPath)
 
   for (const task of selectedTasks) {
