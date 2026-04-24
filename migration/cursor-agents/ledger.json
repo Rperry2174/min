@@ -1,0 +1,19 @@
+{
+  "runs": [
+    {
+      "taskId": "root-architect",
+      "agentId": "bc-f00972c1-33d8-4d91-97bf-aca8015cd247",
+      "runId": "run-fe728d5d-cf99-4c10-8a5b-45e9a0785d64",
+      "desiredBranchName": "cursor/tauri-root-architecture",
+      "model": "claude-sonnet-4-6",
+      "status": "FINISHED",
+      "validation": [
+        "npm test",
+        "npm run build"
+      ],
+      "createdAt": "2026-04-24T14:50:10.979Z",
+      "updatedAt": "2026-04-24T14:57:39.662Z",
+      "url": "https://cursor.com/agents/bc-f00972c1-33d8-4d91-97bf-aca8015cd247"
+    }
+  ]
+}
