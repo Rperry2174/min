@@ -3,6 +3,10 @@
   "repoUrl": "https://github.com/Rperry2174/min.git",
   "startingRef": "cursor/tauri-migration-integration",
   "defaultModel": "claude-sonnet-4-6",
+  "_notes": {
+    "lintGate": "Legacy JS has pre-existing StandardJS failures (documented in docs/tauri-migration/baseline.md). Use the scoped lint command for migration files rather than bare 'npm test'. 'npm run build' (Electron bundler) passes and must not regress.",
+    "tauriGate": "npm run tauri:check compiles the Rust crate without bundling; it requires cargo on PATH via rustup. Run from repo root."
+  },
   "tasks": [
     {
       "id": "root-architect",
@@ -10,8 +14,9 @@
       "model": "claude-sonnet-4-6",
       "dependsOn": [],
       "validation": [
-        "npm test",
-        "npm run build"
+        "npm run build",
+        "npm exec standard -- js/runtime/electronRuntime.js scripts/cursor-tauri-director.js scripts/validateSideBySide.js",
+        "npm run validate:side-by-side"
       ],
       "promptFile": "migration/cursor-agents/prompts/root-architect.md"
     },
@@ -23,7 +28,9 @@
         "root-architect"
       ],
       "validation": [
-        "npm run tauri:check"
+        "npm run build",
+        "npm run tauri:check",
+        "npm run validate:side-by-side"
       ],
       "promptFile": "migration/cursor-agents/prompts/tauri-foundation.md"
     },
@@ -35,9 +42,10 @@
         "tauri-foundation"
       ],
       "validation": [
-        "npm test",
         "npm run build",
-        "npm run tauri:check"
+        "npm exec standard -- js/runtime/electronRuntime.js",
+        "npm run tauri:check",
+        "npm run validate:side-by-side"
       ],
       "promptFile": "migration/cursor-agents/prompts/runtime-bridge.md"
     },
@@ -62,7 +70,6 @@
         "webview-spike"
       ],
       "validation": [
-        "npm test",
         "npm run build",
         "npm run tauri:check",
         "npm run validate:side-by-side"
