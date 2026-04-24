@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
 use std::sync::Mutex;
-use tauri::Manager;
+use tauri::{Emitter, Manager};
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_opener::OpenerExt;
 
@@ -23,11 +23,40 @@ struct TabStore {
 
 // Serializable response types
 
+/// Bounds for a tab's viewport region (mirrors Electron setBounds / getViewBounds).
+/// All values are in logical (CSS) pixels; the Tauri frontend translates to physical
+/// pixels when needed.
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+struct TabBounds {
+    x: i32,
+    y: i32,
+    width: u32,
+    height: u32,
+}
+
 #[derive(Clone, Serialize)]
 struct PrototypeTab {
     id: u64,
     url: String,
+    title: String,
     selected: bool,
+    /// Load-state mirrors the subset of Electron did-start-loading / did-finish-load
+    /// events that callers need for UI feedback.  The Tauri prototype tracks this in
+    /// state rather than via real webview callbacks (see gaps doc).
+    loading: bool,
+    /// Cached bounds so the frontend can restore position on re-select.
+    bounds: TabBounds,
+}
+
+/// Event payload emitted to the frontend when tab state changes.
+/// Mirrors the Electron `view-event` IPC channel shape enough for the
+/// migration bridge to forward events without knowing their semantics.
+#[derive(Clone, Serialize)]
+struct TabEvent {
+    tab_id: u64,
+    event: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    data: Option<serde_json::Value>,
 }
 
 #[derive(Serialize)]
@@ -280,9 +309,24 @@ fn close_window(window: tauri::Window) -> Result<(), String> {
 }
 
 // Commands: tab management (spike)
+//
+// These commands implement the narrow proof: create, select, load URL, close,
+// and resize-bounds awareness.  They correspond to the IPC messages handled by
+// Electron's viewManager.js: createView, setView, loadURLInView, destroyView,
+// and setBounds.
+//
+// PROTOTYPE LIMITATION: tab content is rendered by an <iframe> in the single
+// Tauri webview, not by native per-tab webviews.  See the gap doc for details.
 
+/// Create a new tab and immediately select it.
+/// Corresponds to Electron: ipc.on('createView') + ipc.on('loadURLInView')
 #[tauri::command]
-fn create_tab(state: tauri::State<TabState>, url: String) -> Result<PrototypeTab, String> {
+fn create_tab(
+    app: tauri::AppHandle,
+    state: tauri::State<TabState>,
+    url: String,
+    bounds: Option<TabBounds>,
+) -> Result<PrototypeTab, String> {
     let mut store = state.store.lock().map_err(|e| e.to_string())?;
     store.next_id += 1;
     let id = store.next_id;
@@ -293,16 +337,36 @@ fn create_tab(state: tauri::State<TabState>, url: String) -> Result<PrototypeTab
 
     let tab = PrototypeTab {
         id,
-        url,
+        url: url.clone(),
+        title: url.clone(),
         selected: true,
+        loading: true,
+        bounds: bounds.unwrap_or_default(),
     };
     store.selected_id = Some(id);
     store.tabs.push(tab.clone());
+
+    // Emit tab-created event so the frontend can react without polling.
+    let _ = app.emit(
+        "tab-event",
+        TabEvent {
+            tab_id: id,
+            event: "tab-created".to_string(),
+            data: None,
+        },
+    );
+
     Ok(tab)
 }
 
+/// Select a tab by id (show it, deselect others).
+/// Corresponds to Electron: ipc.on('setView')
 #[tauri::command]
-fn select_tab(state: tauri::State<TabState>, id: u64) -> Result<Vec<PrototypeTab>, String> {
+fn select_tab(
+    app: tauri::AppHandle,
+    state: tauri::State<TabState>,
+    id: u64,
+) -> Result<Vec<PrototypeTab>, String> {
     let mut store = state.store.lock().map_err(|e| e.to_string())?;
     let mut found = false;
 
@@ -316,7 +380,124 @@ fn select_tab(state: tauri::State<TabState>, id: u64) -> Result<Vec<PrototypeTab
     }
 
     store.selected_id = Some(id);
+
+    let _ = app.emit(
+        "tab-event",
+        TabEvent {
+            tab_id: id,
+            event: "tab-selected".to_string(),
+            data: None,
+        },
+    );
+
     Ok(store.tabs.clone())
+}
+
+/// Load a URL in an existing tab.
+/// Corresponds to Electron: ipc.on('loadURLInView')
+#[tauri::command]
+fn load_url_in_tab(
+    app: tauri::AppHandle,
+    state: tauri::State<TabState>,
+    id: u64,
+    url: String,
+) -> Result<PrototypeTab, String> {
+    let mut store = state.store.lock().map_err(|e| e.to_string())?;
+
+    let tab = store
+        .tabs
+        .iter_mut()
+        .find(|t| t.id == id)
+        .ok_or_else(|| format!("unknown tab id: {id}"))?;
+
+    tab.url = url.clone();
+    tab.title = url.clone();
+    tab.loading = true;
+
+    let updated = tab.clone();
+
+    let _ = app.emit(
+        "tab-event",
+        TabEvent {
+            tab_id: id,
+            event: "did-start-loading".to_string(),
+            data: Some(serde_json::json!({ "url": url })),
+        },
+    );
+
+    Ok(updated)
+}
+
+/// Mark a tab as finished loading (frontend calls this after iframe load event).
+/// Corresponds to Electron: view-event did-finish-load
+#[tauri::command]
+fn tab_did_finish_load(
+    app: tauri::AppHandle,
+    state: tauri::State<TabState>,
+    id: u64,
+    final_url: Option<String>,
+    title: Option<String>,
+) -> Result<PrototypeTab, String> {
+    let mut store = state.store.lock().map_err(|e| e.to_string())?;
+
+    let tab = store
+        .tabs
+        .iter_mut()
+        .find(|t| t.id == id)
+        .ok_or_else(|| format!("unknown tab id: {id}"))?;
+
+    tab.loading = false;
+    if let Some(u) = final_url {
+        tab.url = u;
+    }
+    if let Some(t) = title {
+        tab.title = t;
+    }
+
+    let updated = tab.clone();
+
+    let _ = app.emit(
+        "tab-event",
+        TabEvent {
+            tab_id: id,
+            event: "did-finish-load".to_string(),
+            data: None,
+        },
+    );
+
+    Ok(updated)
+}
+
+/// Update the viewport bounds for a tab.
+/// Corresponds to Electron: ipc.on('setBounds')
+#[tauri::command]
+fn set_tab_bounds(
+    state: tauri::State<TabState>,
+    id: u64,
+    bounds: TabBounds,
+) -> Result<PrototypeTab, String> {
+    let mut store = state.store.lock().map_err(|e| e.to_string())?;
+
+    let tab = store
+        .tabs
+        .iter_mut()
+        .find(|t| t.id == id)
+        .ok_or_else(|| format!("unknown tab id: {id}"))?;
+
+    tab.bounds = bounds;
+    Ok(tab.clone())
+}
+
+/// Return the stored bounds for a tab.
+#[tauri::command]
+fn get_tab_bounds(state: tauri::State<TabState>, id: u64) -> Result<TabBounds, String> {
+    let store = state.store.lock().map_err(|e| e.to_string())?;
+    let tab = store
+        .tabs
+        .iter()
+        .find(|t| t.id == id)
+        .ok_or_else(|| format!("unknown tab id: {id}"))?;
+    Ok(tab.bounds.clone())
 }
 
 #[tauri::command]
@@ -325,19 +506,34 @@ fn list_tabs(state: tauri::State<TabState>) -> Result<Vec<PrototypeTab>, String>
     Ok(store.tabs.clone())
 }
 
+/// Close a tab and auto-select the most recent remaining tab.
+/// Corresponds to Electron: ipc.on('destroyView')
 #[tauri::command]
-fn close_tab(state: tauri::State<TabState>, id: u64) -> Result<Vec<PrototypeTab>, String> {
+fn close_tab(
+    app: tauri::AppHandle,
+    state: tauri::State<TabState>,
+    id: u64,
+) -> Result<Vec<PrototypeTab>, String> {
     let mut store = state.store.lock().map_err(|e| e.to_string())?;
     store.tabs.retain(|tab| tab.id != id);
 
     if store.selected_id == Some(id) {
-        store.selected_id = store.tabs.first().map(|tab| tab.id);
+        store.selected_id = store.tabs.last().map(|tab| tab.id);
     }
 
     let selected_id = store.selected_id;
     for tab in store.tabs.iter_mut() {
         tab.selected = Some(tab.id) == selected_id;
     }
+
+    let _ = app.emit(
+        "tab-event",
+        TabEvent {
+            tab_id: id,
+            event: "tab-closed".to_string(),
+            data: None,
+        },
+    );
 
     Ok(store.tabs.clone())
 }
@@ -381,7 +577,7 @@ fn migration_features() -> Vec<MigrationFeature> {
             id: "tabs",
             label: "Tab engine",
             status: "spike",
-            notes: "State model and iframe preview are present; native child webviews remain the key parity risk.",
+            notes: "create_tab / select_tab / load_url_in_tab / close_tab / set_tab_bounds implemented. Content rendered via iframe fallback; native per-tab Tauri Webview instances are the key parity gap. See migration/docs/webview-spike-gaps.md.",
         },
         MigrationFeature {
             id: "downloads",
@@ -425,6 +621,10 @@ pub fn run() {
             close_window,
             create_tab,
             select_tab,
+            load_url_in_tab,
+            tab_did_finish_load,
+            set_tab_bounds,
+            get_tab_bounds,
             list_tabs,
             close_tab,
             migration_features,

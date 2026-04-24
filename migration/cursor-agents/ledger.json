@@ -47,6 +47,18 @@
       "createdAt": "2026-04-24T15:10:26.447Z",
       "updatedAt": "2026-04-24T15:28:00.519Z",
       "url": "https://cursor.com/agents/bc-275138cf-91a2-49ac-867b-8239ba4e7a7b"
+    },
+    {
+      "taskId": "webview-spike",
+      "desiredBranchName": "cursor/tauri-webview-spike",
+      "model": "claude-sonnet-4-6",
+      "status": "FINISHED",
+      "validation": [
+        "npm run tauri:check",
+        "npm run validate:side-by-side"
+      ],
+      "createdAt": "2026-04-24T15:32:00.000Z",
+      "updatedAt": "2026-04-24T15:32:00.000Z"
     }
   ]
 }
