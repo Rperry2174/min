@@ -230,7 +230,7 @@ function openContextMenu (template, x, y) {
 }
 
 function contextMenuItemSelected (_menuId, _itemId) {
-  // Electron emits this back to the renderer; no renderer→main round-trip needed.
+  // Electron emits this back to the renderer; no renderer-to-main round-trip needed.
   return Promise.resolve()
 }
 

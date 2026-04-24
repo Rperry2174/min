@@ -39,15 +39,6 @@ struct DownloadStore {
     items: Vec<DownloadItem>,
 }
 
-/// File-backed credential store protected by the OS keychain is a known gap.
-/// For the migration prototype we store credentials in a plain JSON file in
-/// app-data so that the API surface is exercisable.
-/// GAP: Electron safeStorage encrypts the credential blob with an OS keychain
-/// key.  The Tauri prototype stores credentials in plain JSON.  Replace with
-/// tauri-plugin-stronghold or the `keyring` crate before shipping.
-#[derive(Default)]
-struct CredentialState;
-
 /// Context-menu event bus.
 /// GAP: Tauri v2 does not have a first-party context-menu plugin equivalent to
 /// Electron's Menu.popup().  This state bus lets the frontend register context
@@ -173,7 +164,7 @@ struct DownloadItem {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct StartDownloadRequest {
-    /// Source URL — stored for audit/display but not used by the Rust layer.
+    /// Source URL stored for audit/display but not used by the Rust layer.
     #[allow(dead_code)]
     url: String,
     save_path: String,
@@ -187,21 +178,6 @@ struct Credential {
     domain: String,
     username: String,
     password: String,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-struct CredentialStore {
-    version: u32,
-    credentials: Vec<Credential>,
-}
-
-impl Default for CredentialStore {
-    fn default() -> Self {
-        CredentialStore {
-            version: 1,
-            credentials: Vec::new(),
-        }
-    }
 }
 
 // Menu/context-menu types
@@ -276,31 +252,6 @@ fn write_settings_file(
 ) -> Result<(), String> {
     let file_path = settings_file_path(app)?;
     let contents = serde_json::to_string_pretty(values).map_err(|e| e.to_string())?;
-    fs::write(file_path, contents).map_err(|e| e.to_string())
-}
-
-// ---------------------------------------------------------------------------
-// Credential helpers
-// ---------------------------------------------------------------------------
-
-fn credential_file_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
-    let app_data_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
-    fs::create_dir_all(&app_data_dir).map_err(|e| e.to_string())?;
-    Ok(app_data_dir.join("passwordStore.json"))
-}
-
-fn read_credential_file(app: &tauri::AppHandle) -> Result<CredentialStore, String> {
-    let file_path = credential_file_path(app)?;
-    if !file_path.exists() {
-        return Ok(CredentialStore::default());
-    }
-    let contents = fs::read_to_string(file_path).map_err(|e| e.to_string())?;
-    serde_json::from_str(&contents).map_err(|e| e.to_string())
-}
-
-fn write_credential_file(app: &tauri::AppHandle, store: &CredentialStore) -> Result<(), String> {
-    let file_path = credential_file_path(app)?;
-    let contents = serde_json::to_string_pretty(store).map_err(|e| e.to_string())?;
     fs::write(file_path, contents).map_err(|e| e.to_string())
 }
 
@@ -812,52 +763,32 @@ fn list_downloads(state: tauri::State<DownloadState>) -> Result<Vec<DownloadItem
 // ---------------------------------------------------------------------------
 // Commands: credentials
 //
-// GAP: Electron safeStorage encrypts with an OS keychain key.  This prototype
-// stores credentials as plain JSON in the app-data directory.  Replace with
-// tauri-plugin-stronghold or the `keyring` crate for production.
+// The Electron implementation uses safeStorage. The Tauri migration must use an
+// OS-backed secret store before these commands persist anything.
 // ---------------------------------------------------------------------------
 
-#[tauri::command]
-fn credential_store_get_credentials(app: tauri::AppHandle) -> Result<Vec<Credential>, String> {
-    let store = read_credential_file(&app)?;
-    Ok(store.credentials)
+fn credential_storage_unavailable() -> String {
+    "secure credential storage is not implemented for the Tauri prototype".to_string()
 }
 
 #[tauri::command]
-fn credential_store_set_password(
-    app: tauri::AppHandle,
-    account: Credential,
-) -> Result<(), String> {
-    let mut store = read_credential_file(&app)?;
-
-    // remove duplicates (same domain + username)
-    store.credentials.retain(|c| {
-        !(c.domain == account.domain && c.username == account.username)
-    });
-    store.credentials.push(account);
-    write_credential_file(&app, &store)
+fn credential_store_get_credentials() -> Result<Vec<Credential>, String> {
+    Err(credential_storage_unavailable())
 }
 
 #[tauri::command]
-fn credential_store_set_password_bulk(
-    app: tauri::AppHandle,
-    accounts: Vec<Credential>,
-) -> Result<(), String> {
-    let mut store = read_credential_file(&app)?;
-    store.credentials = accounts;
-    write_credential_file(&app, &store)
+fn credential_store_set_password(_account: Credential) -> Result<(), String> {
+    Err(credential_storage_unavailable())
 }
 
 #[tauri::command]
-fn credential_store_delete_password(
-    app: tauri::AppHandle,
-    account: Credential,
-) -> Result<(), String> {
-    let mut store = read_credential_file(&app)?;
-    store.credentials.retain(|c| {
-        !(c.domain == account.domain && c.username == account.username)
-    });
-    write_credential_file(&app, &store)
+fn credential_store_set_password_bulk(_accounts: Vec<Credential>) -> Result<(), String> {
+    Err(credential_storage_unavailable())
+}
+
+#[tauri::command]
+fn credential_store_delete_password(_account: Credential) -> Result<(), String> {
+    Err(credential_storage_unavailable())
 }
 
 // ---------------------------------------------------------------------------
@@ -881,7 +812,7 @@ fn credential_store_delete_password(
 /// Resolve a min://app/<path> URL to the local filesystem path.
 ///
 /// Security: path traversal is checked with the same logic as Electron's
-/// minInternalProtocol.js – the resolved path must be a child of the app
+/// minInternalProtocol.js - the resolved path must be a child of the app
 /// resource directory.
 #[tauri::command]
 fn resolve_min_url(app: tauri::AppHandle, url: String) -> Result<ResolvedAppUrl, String> {
@@ -1097,8 +1028,8 @@ fn migration_features() -> Vec<MigrationFeature> {
         MigrationFeature {
             id: "credentials",
             label: "Credentials / password store",
-            status: "partial",
-            notes: "credential_store_get_credentials / set_password / set_password_bulk / delete_password persist to a plain JSON file. GAP: Electron safeStorage encrypts with an OS keychain key; replace with tauri-plugin-stronghold or the keyring crate before shipping.",
+            status: "blocked",
+            notes: "Credential command surface exists, but Tauri commands fail closed until backed by OS secret storage. Do not persist passwords as JSON.",
         },
         MigrationFeature {
             id: "internal-protocol",
@@ -1136,7 +1067,6 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         .manage(TabState::default())
         .manage(DownloadState::default())
-        .manage(CredentialState)
         .manage(MenuState::default())
         .invoke_handler(tauri::generate_handler![
             // app

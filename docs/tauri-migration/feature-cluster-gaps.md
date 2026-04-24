@@ -12,7 +12,7 @@ implementation and the equivalent Electron behaviour.  Gaps are labelled
 
 ## Cluster: Downloads
 
-### FC-GAP-1 — No session.will-download interception
+### FC-GAP-1 - No session.will-download interception
 
 **Electron behaviour:**  
 `session.defaultSession.on('will-download', handler)` in `main/download.js`
@@ -36,7 +36,7 @@ payload so the renderer-side `onDownloadInfo` wiring requires no change.
 
 ## Cluster: Credentials
 
-### FC-GAP-2 — Plain JSON instead of OS-keychain encryption
+### FC-GAP-2 - Secure credential storage not implemented
 
 **Electron behaviour:**  
 `main/keychainService.js` uses `electron.safeStorage.encryptString()` to encrypt
@@ -44,16 +44,18 @@ the credential blob with a key stored in the OS keychain (Keychain on macOS,
 DPAPI on Windows, libsecret on Linux).
 
 **Tauri prototype:**  
-`credential_store_*` commands persist credentials as plain JSON in the app-data
-directory (`passwordStore.json`).  The file is not encrypted.
+`credential_store_*` command signatures exist, but every command fails closed.
+The prototype does not persist passwords until an OS-backed secret store is
+wired.
 
-**Risk:**  Password data is readable by any process running as the same OS user.
+**Risk:** Any fallback that writes passwords to JSON would be readable by any
+process running as the same OS user. The current prototype intentionally avoids
+that.
 
 **Mitigation path:**  
-Replace the `credential_file_path` + `read/write_credential_file` helpers with
-one of:
-- [`tauri-plugin-stronghold`](https://github.com/tauri-apps/tauri-plugin-stronghold) — IOTA Stronghold vault; cross-platform.
-- [`keyring`](https://crates.io/crates/keyring) crate — thin OS keychain wrapper; closest to safeStorage semantics.
+Implement the commands with one of:
+- [`tauri-plugin-stronghold`](https://github.com/tauri-apps/tauri-plugin-stronghold) - IOTA Stronghold vault; cross-platform.
+- [`keyring`](https://crates.io/crates/keyring) crate - thin OS keychain wrapper; closest to safeStorage semantics.
 
 The `Credential` struct and all four `credential_store_*` command signatures are
 stable and will not need to change when the storage back-end is swapped.
@@ -62,7 +64,7 @@ stable and will not need to change when the storage back-end is swapped.
 
 ## Cluster: Internal protocol (min://)
 
-### FC-GAP-3 — URI-scheme not registered; assets served via Tauri asset server
+### FC-GAP-3 - URI-scheme not registered; assets served via Tauri asset server
 
 **Electron behaviour:**  
 `main/minInternalProtocol.js` registers the `min` scheme as privileged and
@@ -90,7 +92,7 @@ The `resolve_min_url` command can then be retired or kept as a utility.
 
 ## Cluster: Menus and context menus
 
-### FC-GAP-4 — No native context-menu popup
+### FC-GAP-4 - No native context-menu popup
 
 **Electron behaviour:**  
 `main/remoteMenu.js` handles `ipc.on('open-context-menu', ...)` by constructing
@@ -108,7 +110,7 @@ to `Cargo.toml` (note: community crate, not Tauri-official).  Linux support is
 partial as of 2026.  Alternatively, use `tauri::menu::Menu` for the app menu bar
 and accept JS fallback for context menus on Linux.
 
-### FC-GAP-5 — App menu not yet wired
+### FC-GAP-5 - App menu not yet wired
 
 **Electron behaviour:**  
 `main/menu.js` builds a full native application menu with keyboard accelerators,
@@ -124,7 +126,7 @@ subsystems.
 
 ## Cluster: Reader / PDF paths
 
-### FC-GAP-6 — No Content-Type interception for automatic PDF detection
+### FC-GAP-6 - No Content-Type interception for automatic PDF detection
 
 **Electron behaviour:**  
 `main/download.js` `listenForDownloadHeaders()` intercepts
@@ -142,7 +144,7 @@ GAP-1).
 Wire a per-webview navigation event listener after native child webviews are
 implemented.  The `open-pdf` event shape is already stable.
 
-### FC-GAP-7 — Reader pages require app-bundle path mapping
+### FC-GAP-7 - Reader pages require app-bundle path mapping
 
 **Electron behaviour:**  
 Reader pages are loaded via `min://app/reader/<file>` which is resolved by the

@@ -177,8 +177,8 @@ function onDownloadInfo (handler) {
 // Credentials
 //
 // GAP: Electron safeStorage encrypts with an OS keychain key.
-// This implementation persists plain JSON.  Replace with tauri-plugin-stronghold
-// or the keyring crate before shipping.
+// These commands fail closed until they are backed by tauri-plugin-stronghold
+// or the keyring crate.
 // ---------------------------------------------------------------------------
 
 function credentialStoreGetCredentials () {
