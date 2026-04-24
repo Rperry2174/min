@@ -171,7 +171,7 @@ fn write_text_file(path: String, contents: String) -> Result<(), String> {
 // entry in capabilities/default.json grants these APIs.
 
 #[tauri::command]
-async fn show_open_dialog(
+fn show_open_dialog(
     app: tauri::AppHandle,
     options: Option<OpenDialogOptions>,
 ) -> Result<Vec<String>, String> {
@@ -185,7 +185,7 @@ async fn show_open_dialog(
         builder = builder.set_directory(default_path);
     }
     if let Some(filters) = opts.filters {
-        for f in filters {
+        for f in &filters {
             let extensions: Vec<&str> = f.extensions.iter().map(|s| s.as_str()).collect();
             builder = builder.add_filter(&f.name, &extensions);
         }
@@ -195,31 +195,25 @@ async fn show_open_dialog(
     let directory = opts.directory.unwrap_or(false);
 
     if directory {
-        let result = builder.pick_folder();
-        match result {
-            Some(path) => Ok(vec![path.to_string_lossy().to_string()]),
+        match builder.blocking_pick_folder() {
+            Some(path) => Ok(vec![path.to_string()]),
             None => Ok(vec![]),
         }
     } else if multiple {
-        let result = builder.pick_files();
-        match result {
-            Some(paths) => Ok(paths
-                .into_iter()
-                .map(|p| p.to_string_lossy().to_string())
-                .collect()),
+        match builder.blocking_pick_files() {
+            Some(paths) => Ok(paths.into_iter().map(|p| p.to_string()).collect()),
             None => Ok(vec![]),
         }
     } else {
-        let result = builder.pick_file();
-        match result {
-            Some(path) => Ok(vec![path.to_string_lossy().to_string()]),
+        match builder.blocking_pick_file() {
+            Some(path) => Ok(vec![path.to_string()]),
             None => Ok(vec![]),
         }
     }
 }
 
 #[tauri::command]
-async fn show_save_dialog(
+fn show_save_dialog(
     app: tauri::AppHandle,
     options: Option<SaveDialogOptions>,
 ) -> Result<Option<String>, String> {
@@ -233,14 +227,13 @@ async fn show_save_dialog(
         builder = builder.set_file_name(default_path);
     }
     if let Some(filters) = opts.filters {
-        for f in filters {
+        for f in &filters {
             let extensions: Vec<&str> = f.extensions.iter().map(|s| s.as_str()).collect();
             builder = builder.add_filter(&f.name, &extensions);
         }
     }
 
-    let result = builder.save_file();
-    Ok(result.map(|p| p.to_string_lossy().to_string()))
+    Ok(builder.blocking_save_file().map(|p| p.to_string()))
 }
 
 // ── Commands: shell / opener ──────────────────────────────────────────────────
@@ -249,14 +242,13 @@ async fn show_save_dialog(
 // "opener:default".  No additional capability scope is required.
 
 #[tauri::command]
-fn show_item_in_folder(path: String) -> Result<(), String> {
-    // tauri-plugin-opener does not expose a "reveal in Finder/Explorer" call
-    // directly, so we open the parent directory as the closest equivalent.
-    let parent = std::path::Path::new(&path)
-        .parent()
-        .map(|p| p.to_string_lossy().to_string())
-        .unwrap_or(path.clone());
-    open_path(parent)
+fn show_item_in_folder(app: tauri::AppHandle, path: String) -> Result<(), String> {
+    // Reveal the item's parent directory using the opener plugin's
+    // reveal_item_in_dir, which maps to Finder "Show in Finder" / Windows
+    // Explorer / the system file manager on Linux.
+    app.opener()
+        .reveal_item_in_dir(&path)
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
