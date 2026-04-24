@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; frame-src http: https:; style-src 'self' 'unsafe-inline'; script-src 'self'" />
+    <title>Min Tauri Migration</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <!-- Tab bar (prototype) -->
+    <header class="tab-bar" id="tab-bar" aria-label="Open tabs">
+      <div id="tab-strip" class="tab-strip" role="tablist"></div>
+      <form id="new-tab-form" class="new-tab-form">
+        <input
+          id="new-tab-url"
+          type="url"
+          placeholder="Enter URL and press Enter"
+          value="https://example.com"
+          aria-label="URL for new tab"
+        />
+        <button type="submit" class="btn-new-tab" title="Open new tab">+</button>
+      </form>
+    </header>
+
+    <!-- Address bar -->
+    <div class="address-bar" id="address-bar">
+      <form id="navigate-form" class="navigate-form">
+        <div class="url-wrap">
+          <span class="loading-indicator" id="loading-indicator" aria-hidden="true"></span>
+          <input
+            id="address-input"
+            type="url"
+            placeholder="No tab selected"
+            aria-label="Address bar"
+            disabled
+          />
+        </div>
+        <button type="submit" id="go-btn" disabled>Go</button>
+      </form>
+      <div class="addr-actions">
+        <button id="close-tab-btn" type="button" disabled>Close tab</button>
+      </div>
+    </div>
+
+    <!-- Tab content (iframe fallback) -->
+    <main class="content-area">
+      <iframe
+        id="tab-iframe"
+        title="Tab content (iframe prototype)"
+        sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+      ></iframe>
+
+      <!-- No-tab placeholder -->
+      <div class="no-tab-placeholder" id="no-tab-placeholder">
+        <p class="eyebrow">Min Tauri / Webview Spike</p>
+        <h1>Tab Engine Prototype</h1>
+        <p>
+          This prototype demonstrates tab state and best-effort page loading via
+          an iframe fallback.  Open a URL above to begin.
+        </p>
+        <p class="notice">
+          <strong>Note:</strong> content is rendered in a sandboxed iframe, not a
+          native per-tab webview.  See the gap doc for what this means for
+          production parity.
+        </p>
+      </div>
+    </main>
+
+    <!-- Migration info panel (collapsible) -->
+    <details class="info-panel" id="info-panel">
+      <summary>Migration status &amp; diagnostics</summary>
+      <div class="info-grid">
+        <section>
+          <h2>Runtime</h2>
+          <dl id="runtime-info">
+            <div><dt>Host</dt><dd>Loading...</dd></div>
+          </dl>
+        </section>
+
+        <section>
+          <h2>Window controls</h2>
+          <div class="button-row">
+            <button id="minimize-window" type="button">Minimize</button>
+            <button id="toggle-maximize-window" type="button">Maximize</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Settings bridge</h2>
+          <label>
+            Demo key
+            <input id="demo-setting" type="text" value="tauri migration" />
+          </label>
+          <button id="save-setting" type="button">Save</button>
+          <pre id="settings-output">Not saved yet.</pre>
+        </section>
+
+        <section>
+          <h2>Tab state (Rust)</h2>
+          <pre id="tab-state-output">Loading...</pre>
+        </section>
+
+        <section>
+          <h2>App info</h2>
+          <button id="refresh-app-info" type="button">Refresh</button>
+          <pre id="app-info-output">Waiting for Tauri...</pre>
+        </section>
+
+        <section>
+          <h2>Migration features</h2>
+          <pre id="features-output">Loading...</pre>
+        </section>
+      </div>
+    </details>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,92 @@
+{
+  "name": "electron-to-tauri-migration",
+  "repoUrl": "https://github.com/Rperry2174/min.git",
+  "startingRef": "cursor/tauri-migration-integration",
+  "defaultModel": "claude-sonnet-4-6",
+  "_notes": {
+    "lintGate": "Legacy JS has pre-existing StandardJS failures (documented in docs/tauri-migration/baseline.md). Use the scoped lint command for migration files rather than bare 'npm test'. 'npm run build' (Electron bundler) passes and must not regress.",
+    "tauriGate": "npm run tauri:check compiles the Rust crate without bundling; it requires cargo on PATH via rustup. Run from repo root."
+  },
+  "tasks": [
+    {
+      "id": "root-architect",
+      "branchName": "cursor/tauri-root-architecture",
+      "model": "claude-sonnet-4-6",
+      "dependsOn": [],
+      "validation": [
+        "npm run build",
+        "npm exec standard -- js/runtime/electronRuntime.js scripts/cursor-tauri-director.js scripts/validateSideBySide.js",
+        "npm run validate:side-by-side"
+      ],
+      "promptFile": "migration/cursor-agents/prompts/root-architect.md"
+    },
+    {
+      "id": "tauri-foundation",
+      "branchName": "cursor/tauri-foundation",
+      "model": "claude-sonnet-4-6",
+      "dependsOn": [
+        "root-architect"
+      ],
+      "validation": [
+        "npm run build",
+        "npm run tauri:check",
+        "npm run validate:side-by-side"
+      ],
+      "promptFile": "migration/cursor-agents/prompts/tauri-foundation.md"
+    },
+    {
+      "id": "runtime-bridge",
+      "branchName": "cursor/tauri-runtime-bridge",
+      "model": "claude-sonnet-4-6",
+      "dependsOn": [
+        "tauri-foundation"
+      ],
+      "validation": [
+        "npm run build",
+        "npm exec standard -- js/runtime/electronRuntime.js",
+        "npm run tauri:check",
+        "npm run validate:side-by-side"
+      ],
+      "promptFile": "migration/cursor-agents/prompts/runtime-bridge.md"
+    },
+    {
+      "id": "webview-spike",
+      "branchName": "cursor/tauri-webview-spike",
+      "model": "claude-sonnet-4-6",
+      "dependsOn": [
+        "runtime-bridge"
+      ],
+      "validation": [
+        "npm run tauri:check",
+        "npm run validate:side-by-side"
+      ],
+      "promptFile": "migration/cursor-agents/prompts/webview-spike.md"
+    },
+    {
+      "id": "feature-clusters",
+      "branchName": "cursor/tauri-feature-clusters",
+      "model": "claude-sonnet-4-6",
+      "dependsOn": [
+        "webview-spike"
+      ],
+      "validation": [
+        "npm run build",
+        "npm run tauri:check",
+        "npm run validate:side-by-side"
+      ],
+      "promptFile": "migration/cursor-agents/prompts/feature-clusters.md"
+    },
+    {
+      "id": "verification-demo",
+      "branchName": "cursor/tauri-verification-demo",
+      "model": "claude-sonnet-4-6",
+      "dependsOn": [
+        "feature-clusters"
+      ],
+      "validation": [
+        "npm run validate:side-by-side"
+      ],
+      "promptFile": "migration/cursor-agents/prompts/verification-demo.md"
+    }
+  ]
+}
