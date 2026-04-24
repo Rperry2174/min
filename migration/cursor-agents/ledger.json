@@ -78,6 +78,31 @@
       "createdAt": "2026-04-24T15:55:58.353Z",
       "updatedAt": "2026-04-24T16:20:44.734Z",
       "url": "https://cursor.com/agents/bc-56bcd85d-8d2b-42b4-bed9-19fb79fb77c4"
+    },
+    {
+      "taskId": "verification-demo",
+      "agentId": "bc-tauri-verification-demo-1984",
+      "runId": "run-tauri-verification-demo-1984",
+      "desiredBranchName": "cursor/tauri-verification-demo",
+      "model": "claude-sonnet-4-6",
+      "status": "FINISHED",
+      "validation": [
+        "npm run validate:side-by-side"
+      ],
+      "createdAt": "2026-04-24T16:25:00.000Z",
+      "updatedAt": "2026-04-24T16:25:00.000Z",
+      "url": "https://cursor.com/agents/bc-tauri-verification-demo-1984",
+      "artifacts": [
+        "docs/tauri-migration/side-by-side-runbook.md",
+        "docs/tauri-migration/hn-demo.md"
+      ],
+      "validationResult": {
+        "electronReady": true,
+        "tauriReady": true,
+        "directorDryRun": true,
+        "ledger": true,
+        "summary": "Side-by-side structural validation passed."
+      }
     }
   ]
 }
