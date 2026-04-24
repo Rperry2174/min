@@ -47,6 +47,21 @@
       "createdAt": "2026-04-24T15:10:26.447Z",
       "updatedAt": "2026-04-24T15:28:00.519Z",
       "url": "https://cursor.com/agents/bc-275138cf-91a2-49ac-867b-8239ba4e7a7b"
+    },
+    {
+      "taskId": "webview-spike",
+      "agentId": "bc-1f370f8d-58da-40aa-a821-7bdce8f94878",
+      "runId": "run-677b5c9f-1865-4ac8-b987-1b4505ac8547",
+      "desiredBranchName": "cursor/tauri-webview-spike",
+      "model": "claude-sonnet-4-6",
+      "status": "FINISHED",
+      "validation": [
+        "npm run tauri:check",
+        "npm run validate:side-by-side"
+      ],
+      "createdAt": "2026-04-24T15:31:38.103Z",
+      "updatedAt": "2026-04-24T15:51:48.302Z",
+      "url": "https://cursor.com/agents/bc-1f370f8d-58da-40aa-a821-7bdce8f94878"
     }
   ]
 }
