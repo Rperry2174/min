@@ -1,11 +1,9 @@
 use serde::Serialize;
 use std::collections::HashMap;
+use std::fs;
+use std::path::PathBuf;
 use std::sync::Mutex;
-
-#[derive(Default)]
-struct SettingsState {
-    values: Mutex<HashMap<String, String>>,
-}
+use tauri::Manager;
 
 #[derive(Default)]
 struct TabState {
@@ -48,6 +46,32 @@ struct MigrationFeature {
     notes: &'static str,
 }
 
+fn settings_file_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    let app_data_dir = app.path().app_data_dir().map_err(|error| error.to_string())?;
+    fs::create_dir_all(&app_data_dir).map_err(|error| error.to_string())?;
+    Ok(app_data_dir.join("settings.json"))
+}
+
+fn read_settings_file(app: &tauri::AppHandle) -> Result<HashMap<String, String>, String> {
+    let file_path = settings_file_path(app)?;
+
+    if !file_path.exists() {
+        return Ok(HashMap::new());
+    }
+
+    let contents = fs::read_to_string(file_path).map_err(|error| error.to_string())?;
+    serde_json::from_str(&contents).map_err(|error| error.to_string())
+}
+
+fn write_settings_file(
+    app: &tauri::AppHandle,
+    values: &HashMap<String, String>,
+) -> Result<(), String> {
+    let file_path = settings_file_path(app)?;
+    let contents = serde_json::to_string_pretty(values).map_err(|error| error.to_string())?;
+    fs::write(file_path, contents).map_err(|error| error.to_string())
+}
+
 #[tauri::command]
 fn app_info() -> AppInfo {
     AppInfo {
@@ -59,8 +83,8 @@ fn app_info() -> AppInfo {
 }
 
 #[tauri::command]
-fn read_setting(state: tauri::State<SettingsState>, key: String) -> Result<SettingValue, String> {
-    let values = state.values.lock().map_err(|error| error.to_string())?;
+fn read_setting(app: tauri::AppHandle, key: String) -> Result<SettingValue, String> {
+    let values = read_settings_file(&app)?;
 
     Ok(SettingValue {
         key: key.clone(),
@@ -69,13 +93,10 @@ fn read_setting(state: tauri::State<SettingsState>, key: String) -> Result<Setti
 }
 
 #[tauri::command]
-fn write_setting(
-    state: tauri::State<SettingsState>,
-    key: String,
-    value: String,
-) -> Result<SettingValue, String> {
-    let mut values = state.values.lock().map_err(|error| error.to_string())?;
+fn write_setting(app: tauri::AppHandle, key: String, value: String) -> Result<SettingValue, String> {
+    let mut values = read_settings_file(&app)?;
     values.insert(key.clone(), value.clone());
+    write_settings_file(&app, &values)?;
 
     Ok(SettingValue {
         key,
@@ -170,8 +191,8 @@ fn migration_features() -> Vec<MigrationFeature> {
         MigrationFeature {
             id: "settings",
             label: "Settings persistence",
-            status: "prototype",
-            notes: "In-memory command-backed bridge; durable storage comes next.",
+            status: "foundation",
+            notes: "Command-backed bridge persists JSON in the Tauri app-data directory.",
         },
         MigrationFeature {
             id: "window-controls",
@@ -209,7 +230,6 @@ pub fn run() {
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_shell::init())
-        .manage(SettingsState::default())
         .manage(TabState::default())
         .invoke_handler(tauri::generate_handler![
             app_info,

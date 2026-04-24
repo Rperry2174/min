@@ -14,6 +14,22 @@
       "createdAt": "2026-04-24T14:50:10.979Z",
       "updatedAt": "2026-04-24T14:57:39.662Z",
       "url": "https://cursor.com/agents/bc-f00972c1-33d8-4d91-97bf-aca8015cd247"
+    },
+    {
+      "taskId": "tauri-foundation",
+      "agentId": "bc-308b2786-27df-4e9f-8e26-9f6379da65bc",
+      "runId": "run-6568e45d-1cb0-4a86-b782-8f2fd84039f1",
+      "desiredBranchName": "cursor/tauri-foundation",
+      "model": "claude-sonnet-4-6",
+      "status": "FINISHED",
+      "validation": [
+        "npm run build",
+        "npm run tauri:check",
+        "npm run validate:side-by-side"
+      ],
+      "createdAt": "2026-04-24T14:58:38.552Z",
+      "updatedAt": "2026-04-24T15:08:06.154Z",
+      "url": "https://cursor.com/agents/bc-308b2786-27df-4e9f-8e26-9f6379da65bc"
     }
   ]
 }

@@ -4,7 +4,7 @@ This file tracks the migration surface in mergeable clusters.
 
 | Cluster | Electron Source | Tauri Status | Notes |
 | --- | --- | --- | --- |
-| Settings | `js/util/settings/settings.js`, `js/util/settings/settingsMain.js` | Prototype | `read_setting` and `write_setting` commands are wired with in-memory state. Durable app-data storage is the next increment. |
+| Settings | `js/util/settings/settings.js`, `js/util/settings/settingsMain.js` | Foundation | `read_setting` and `write_setting` commands persist string settings as JSON in the Tauri app-data directory. |
 | Window controls | `main/remoteActions.js`, `js/windowControls.js` | Prototype | `minimize_window`, `toggle_maximize_window`, and `close_window` commands are available in Tauri. |
 | Runtime bridge | `js/default.js` | Started | `window.minRuntime` exists in Electron and Tauri while legacy Electron globals remain intact. |
 | Tab engine | `main/viewManager.js`, `js/webviews.js` | Spike | Tauri has tab state and iframe preview; native child webview parity remains unresolved. |
