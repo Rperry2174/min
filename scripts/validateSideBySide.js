@@ -27,9 +27,11 @@ const requiredFiles = [
   'tauri-min/package.json',
   'tauri-min/web/index.html',
   'tauri-min/web/runtime.js',
+  'tauri-min/web/tabEngine.js',
   'tauri-min/src-tauri/tauri.conf.json',
   'tauri-min/src-tauri/src/lib.rs',
   'migration/cursor-agents/tauri-migration-dag.json',
+  'docs/tauri-migration/webview-spike-gaps.md',
   'scripts/cursor-tauri-director.js'
 ]
 

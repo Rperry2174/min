@@ -86,13 +86,32 @@ function closeWindow () {
 }
 
 // Tab management (spike)
+//
+// These thin wrappers expose all tab commands to callers that use
+// window.minRuntime directly rather than going through TabEngine.
 
-function createTab (url) {
-  return invoke('create_tab', { url })
+function createTab (url, bounds) {
+  return invoke('create_tab', { url, bounds: bounds || null })
 }
 
 function selectTab (id) {
   return invoke('select_tab', { id })
+}
+
+function loadUrlInTab (id, url) {
+  return invoke('load_url_in_tab', { id, url })
+}
+
+function tabDidFinishLoad (id, finalUrl, title) {
+  return invoke('tab_did_finish_load', { id, finalUrl: finalUrl || null, title: title || null })
+}
+
+function setTabBounds (id, bounds) {
+  return invoke('set_tab_bounds', { id, bounds })
+}
+
+function getTabBounds (id) {
+  return invoke('get_tab_bounds', { id })
 }
 
 function listTabs () {
@@ -144,6 +163,10 @@ export const minRuntime = {
   // tab management (spike)
   createTab,
   selectTab,
+  loadUrlInTab,
+  tabDidFinishLoad,
+  setTabBounds,
+  getTabBounds,
   listTabs,
   closeTab,
 

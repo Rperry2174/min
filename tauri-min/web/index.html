@@ -8,53 +8,111 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <main class="app-shell">
-      <section class="hero">
-        <p class="eyebrow">Min Browser</p>
-        <h1>Tauri migration shell</h1>
-        <p>
-          This side-by-side app starts as a safe Tauri scaffold and grows feature parity
-          behind runtime bridges and validation gates.
-        </p>
-      </section>
+    <!-- Tab bar (prototype) -->
+    <header class="tab-bar" id="tab-bar" aria-label="Open tabs">
+      <div id="tab-strip" class="tab-strip" role="tablist"></div>
+      <form id="new-tab-form" class="new-tab-form">
+        <input
+          id="new-tab-url"
+          type="url"
+          placeholder="Enter URL and press Enter"
+          value="https://example.com"
+          aria-label="URL for new tab"
+        />
+        <button type="submit" class="btn-new-tab" title="Open new tab">+</button>
+      </form>
+    </header>
 
-      <section class="grid">
-        <article>
+    <!-- Address bar -->
+    <div class="address-bar" id="address-bar">
+      <form id="navigate-form" class="navigate-form">
+        <div class="url-wrap">
+          <span class="loading-indicator" id="loading-indicator" aria-hidden="true"></span>
+          <input
+            id="address-input"
+            type="url"
+            placeholder="No tab selected"
+            aria-label="Address bar"
+            disabled
+          />
+        </div>
+        <button type="submit" id="go-btn" disabled>Go</button>
+      </form>
+      <div class="addr-actions">
+        <button id="close-tab-btn" type="button" disabled>Close tab</button>
+      </div>
+    </div>
+
+    <!-- Tab content (iframe fallback) -->
+    <main class="content-area">
+      <iframe
+        id="tab-iframe"
+        title="Tab content (iframe prototype)"
+        sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+      ></iframe>
+
+      <!-- No-tab placeholder -->
+      <div class="no-tab-placeholder" id="no-tab-placeholder">
+        <p class="eyebrow">Min Tauri / Webview Spike</p>
+        <h1>Tab Engine Prototype</h1>
+        <p>
+          This prototype demonstrates tab state and best-effort page loading via
+          an iframe fallback.  Open a URL above to begin.
+        </p>
+        <p class="notice">
+          <strong>Note:</strong> content is rendered in a sandboxed iframe, not a
+          native per-tab webview.  See the gap doc for what this means for
+          production parity.
+        </p>
+      </div>
+    </main>
+
+    <!-- Migration info panel (collapsible) -->
+    <details class="info-panel" id="info-panel">
+      <summary>Migration status &amp; diagnostics</summary>
+      <div class="info-grid">
+        <section>
           <h2>Runtime</h2>
           <dl id="runtime-info">
             <div><dt>Host</dt><dd>Loading...</dd></div>
           </dl>
-        </article>
+        </section>
 
-        <article>
-          <h2>Native Commands</h2>
-          <button id="refresh-app-info" type="button">Refresh app info</button>
-          <button id="minimize-window" type="button">Minimize</button>
-          <button id="toggle-maximize-window" type="button">Toggle maximize</button>
-          <pre id="app-info-output">Waiting for Tauri...</pre>
-        </article>
+        <section>
+          <h2>Window controls</h2>
+          <div class="button-row">
+            <button id="minimize-window" type="button">Minimize</button>
+            <button id="toggle-maximize-window" type="button">Maximize</button>
+          </div>
+        </section>
 
-        <article>
-          <h2>Settings Bridge</h2>
+        <section>
+          <h2>Settings bridge</h2>
           <label>
-            Demo setting
+            Demo key
             <input id="demo-setting" type="text" value="tauri migration" />
           </label>
-          <button id="save-setting" type="button">Save setting</button>
+          <button id="save-setting" type="button">Save</button>
           <pre id="settings-output">Not saved yet.</pre>
-        </article>
+        </section>
 
-        <article>
-          <h2>Tab Webview Spike</h2>
-          <form id="tab-form">
-            <input id="tab-url" type="url" value="https://example.com" />
-            <button type="submit">Open prototype tab</button>
-          </form>
-          <div id="tab-list" class="tab-list"></div>
-          <iframe id="tab-preview" title="Prototype tab preview" sandbox="allow-same-origin allow-scripts"></iframe>
-        </article>
-      </section>
-    </main>
+        <section>
+          <h2>Tab state (Rust)</h2>
+          <pre id="tab-state-output">Loading...</pre>
+        </section>
+
+        <section>
+          <h2>App info</h2>
+          <button id="refresh-app-info" type="button">Refresh</button>
+          <pre id="app-info-output">Waiting for Tauri...</pre>
+        </section>
+
+        <section>
+          <h2>Migration features</h2>
+          <pre id="features-output">Loading...</pre>
+        </section>
+      </div>
+    </details>
 
     <script type="module" src="./main.js"></script>
   </body>
