@@ -2,14 +2,14 @@ var electron = require('electron')
 var fs = require('fs')
 
 /*
- * minRuntime – Electron implementation
+ * minRuntime - Electron implementation
  *
  * Exposes the canonical minRuntime API backed by existing Electron globals.
  * Legacy exports (electron, fs, ipc) are kept so that call sites that have not
  * yet been migrated continue to work unchanged.
  */
 
-// ── IPC ──────────────────────────────────────────────────────────────────────
+// IPC
 
 function invoke (channel, data) {
   return electron.ipcRenderer.invoke(channel, data)
@@ -23,7 +23,7 @@ function on (channel, listener) {
   electron.ipcRenderer.on(channel, listener)
 }
 
-// ── Filesystem ───────────────────────────────────────────────────────────────
+// Filesystem
 
 function readTextFile (filePath) {
   return fs.readFileSync(filePath, 'utf-8')
@@ -33,7 +33,7 @@ function writeTextFile (filePath, contents) {
   fs.writeFileSync(filePath, contents, 'utf-8')
 }
 
-// ── App info ─────────────────────────────────────────────────────────────────
+// App info
 
 function appInfo () {
   return Promise.resolve({
@@ -43,7 +43,7 @@ function appInfo () {
   })
 }
 
-// ── Shell ─────────────────────────────────────────────────────────────────────
+// Shell
 
 function showItemInFolder (filePath) {
   return invoke('showItemInFolder', filePath)
@@ -53,7 +53,7 @@ function openPath (filePath) {
   return electron.shell.openPath(filePath)
 }
 
-// ── Dialogs ───────────────────────────────────────────────────────────────────
+// Dialogs
 
 function showOpenDialog (options) {
   return invoke('showOpenDialog', options)
@@ -63,7 +63,7 @@ function showSaveDialog (options) {
   return invoke('showSaveDialog', options)
 }
 
-// ── Settings ──────────────────────────────────────────────────────────────────
+// Settings
 
 function readSetting (key) {
   return Promise.resolve({ key: key, value: electron.ipcRenderer.sendSync ? undefined : undefined })
@@ -93,7 +93,7 @@ function writeSetting (key, value) {
   })
 }
 
-// ── Window controls ───────────────────────────────────────────────────────────
+// Window controls
 
 function minimizeWindow () {
   return invoke('minimize')
@@ -107,7 +107,7 @@ function closeWindow () {
   return invoke('close')
 }
 
-// ── Migration features ────────────────────────────────────────────────────────
+// Migration features
 
 function migrationFeatures () {
   return Promise.resolve([

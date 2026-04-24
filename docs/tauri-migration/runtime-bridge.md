@@ -30,17 +30,17 @@ not throw.  Callers that need bidirectional events on Tauri should use the
 
 ```js
 window.minRuntime.appInfo()
-// → Promise<{ productName, runtime, platform }>
+// => Promise<{ productName, runtime, platform }>
 ```
 
 ### Settings
 
 ```js
 window.minRuntime.readSetting(key)
-// → Promise<{ key, value }>
+// => Promise<{ key, value }>
 
 window.minRuntime.writeSetting(key, value)
-// → Promise<{ key, value }>
+// => Promise<{ key, value }>
 ```
 
 Settings are persisted to a JSON file.  On Electron the renderer settings
@@ -52,10 +52,10 @@ the Tauri app-data directory.
 
 ```js
 window.minRuntime.readTextFile(filePath)
-// → string (Electron, synchronous) | Promise<string> (Tauri)
+// => string (Electron, synchronous) | Promise<string> (Tauri)
 
 window.minRuntime.writeTextFile(filePath, contents)
-// → void (Electron) | Promise<void> (Tauri)
+// => void (Electron) | Promise<void> (Tauri)
 ```
 
 Restricted to UTF-8 text.  Binary file access should be implemented as a
@@ -65,18 +65,18 @@ dedicated command with appropriate path validation.
 
 ```js
 window.minRuntime.showOpenDialog(options)
-// → Promise<string[]>   – array of selected paths (empty if cancelled)
+// => Promise<string[]> - array of selected paths (empty if cancelled)
 
 window.minRuntime.showSaveDialog(options)
-// → Promise<string|null>  – selected path or null if cancelled
+// => Promise<string|null> - selected path or null if cancelled
 ```
 
 Options accepted (both runtimes):
-- `title` – dialog window title
-- `defaultPath` – initial directory or filename
-- `multiple` – allow multiple file selection (open only)
-- `directory` – pick a directory instead of a file (open only)
-- `filters` – `[{ name, extensions }]`
+- `title` - dialog window title
+- `defaultPath` - initial directory or filename
+- `multiple` - allow multiple file selection (open only)
+- `directory` - pick a directory instead of a file (open only)
+- `filters` - `[{ name, extensions }]`
 
 **Capability notes:** Both `showOpenDialog` and `showSaveDialog` are backed by
 `tauri-plugin-dialog` on Tauri.  The existing `"dialog:default"` entry in
@@ -87,10 +87,10 @@ was required.
 
 ```js
 window.minRuntime.showItemInFolder(filePath)
-// → Promise<void>  – reveals the parent directory
+// => Promise<void> - reveals the parent directory
 
 window.minRuntime.openPath(filePath)
-// → Promise<void>  – opens the path with the system default application
+// => Promise<void> - opens the path with the system default application
 ```
 
 **Capability notes:** `openPath` and `showItemInFolder` are backed by
@@ -101,18 +101,18 @@ was required.
 ### Window controls
 
 ```js
-window.minRuntime.minimizeWindow()     // → Promise<void>
-window.minRuntime.toggleMaximizeWindow() // → Promise<void>
-window.minRuntime.closeWindow()        // → Promise<void>
+window.minRuntime.minimizeWindow()     // => Promise<void>
+window.minRuntime.toggleMaximizeWindow() // => Promise<void>
+window.minRuntime.closeWindow()        // => Promise<void>
 ```
 
 ### Tab management (spike, Tauri only)
 
 ```js
-window.minRuntime.createTab(url)  // → Promise<Tab>
-window.minRuntime.selectTab(id)   // → Promise<Tab[]>
-window.minRuntime.listTabs()      // → Promise<Tab[]>
-window.minRuntime.closeTab(id)    // → Promise<Tab[]>
+window.minRuntime.createTab(url)  // => Promise<Tab>
+window.minRuntime.selectTab(id)   // => Promise<Tab[]>
+window.minRuntime.listTabs()      // => Promise<Tab[]>
+window.minRuntime.closeTab(id)    // => Promise<Tab[]>
 ```
 
 These are Tauri-specific spike commands.  The Electron implementation does not
@@ -122,7 +122,7 @@ expose them; callers should guard with `window.minRuntime.host === 'tauri'`.
 
 ```js
 window.minRuntime.migrationFeatures()
-// → Promise<Array<{ id, label, status, notes }>>
+// => Promise<Array<{ id, label, status, notes }>>
 ```
 
 Returns the list of feature clusters and their migration status.

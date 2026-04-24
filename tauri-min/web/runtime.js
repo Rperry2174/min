@@ -1,7 +1,7 @@
 import { invoke } from '@tauri-apps/api/core'
 
 /*
- * minRuntime – Tauri implementation
+ * minRuntime - Tauri implementation
  *
  * Exposes the canonical minRuntime API backed by @tauri-apps/api and Rust
  * commands registered in src-tauri/src/lib.rs.
@@ -10,14 +10,14 @@ import { invoke } from '@tauri-apps/api/core'
  * renderer code can call window.minRuntime without knowing the host runtime.
  */
 
-// ── IPC shim ─────────────────────────────────────────────────────────────────
+// IPC shim
 // Tauri does not have a generic IPC channel like Electron's ipcRenderer.
 // send() and on() are no-ops stubs provided so that code that feature-detects
 // their presence does not throw.  Callers that need bidirectional messaging
 // should migrate to the command-based methods below.
 
 function send (_channel, _data) {
-  // no-op: Tauri uses invoke() for renderer→backend communication
+  // no-op: Tauri uses invoke() for renderer-to-backend communication
 }
 
 function on (_channel, _listener) {
@@ -25,13 +25,13 @@ function on (_channel, _listener) {
   // system.  Migrate callers to window.__TAURI__.event.listen() if needed.
 }
 
-// ── App info ─────────────────────────────────────────────────────────────────
+// App info
 
 function appInfo () {
   return invoke('app_info')
 }
 
-// ── Settings ─────────────────────────────────────────────────────────────────
+// Settings
 
 function readSetting (key) {
   return invoke('read_setting', { key })
@@ -41,7 +41,7 @@ function writeSetting (key, value) {
   return invoke('write_setting', { key, value })
 }
 
-// ── Filesystem ───────────────────────────────────────────────────────────────
+// Filesystem
 
 function readTextFile (filePath) {
   return invoke('read_text_file', { path: filePath })
@@ -51,7 +51,7 @@ function writeTextFile (filePath, contents) {
   return invoke('write_text_file', { path: filePath, contents })
 }
 
-// ── Dialogs ───────────────────────────────────────────────────────────────────
+// Dialogs
 
 function showOpenDialog (options) {
   return invoke('show_open_dialog', { options: options || {} })
@@ -61,7 +61,7 @@ function showSaveDialog (options) {
   return invoke('show_save_dialog', { options: options || {} })
 }
 
-// ── Shell integration ─────────────────────────────────────────────────────────
+// Shell integration
 
 function showItemInFolder (filePath) {
   return invoke('show_item_in_folder', { path: filePath })
@@ -71,7 +71,7 @@ function openPath (filePath) {
   return invoke('open_path', { path: filePath })
 }
 
-// ── Window controls ───────────────────────────────────────────────────────────
+// Window controls
 
 function minimizeWindow () {
   return invoke('minimize_window')
@@ -85,7 +85,7 @@ function closeWindow () {
   return invoke('close_window')
 }
 
-// ── Tab management (spike) ────────────────────────────────────────────────────
+// Tab management (spike)
 
 function createTab (url) {
   return invoke('create_tab', { url })
@@ -103,7 +103,7 @@ function closeTab (id) {
   return invoke('close_tab', { id })
 }
 
-// ── Migration features ────────────────────────────────────────────────────────
+// Migration features
 
 function migrationFeatures () {
   return invoke('migration_features')

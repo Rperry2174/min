@@ -7,7 +7,7 @@ use tauri::Manager;
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_opener::OpenerExt;
 
-// ── State types ───────────────────────────────────────────────────────────────
+// State types
 
 #[derive(Default)]
 struct TabState {
@@ -21,7 +21,7 @@ struct TabStore {
     tabs: Vec<PrototypeTab>,
 }
 
-// ── Serialisable response types ───────────────────────────────────────────────
+// Serializable response types
 
 #[derive(Clone, Serialize)]
 struct PrototypeTab {
@@ -52,7 +52,7 @@ struct MigrationFeature {
     notes: &'static str,
 }
 
-// ── Dialog option types ───────────────────────────────────────────────────────
+// Dialog option types
 
 /// A subset of the options accepted by both showOpenDialog and showSaveDialog.
 /// Only the fields needed for the minRuntime bridge surface are included; the
@@ -82,7 +82,7 @@ struct DialogFilter {
     extensions: Vec<String>,
 }
 
-// ── Settings helpers ──────────────────────────────────────────────────────────
+// Settings helpers
 
 fn settings_file_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
     let app_data_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
@@ -108,7 +108,7 @@ fn write_settings_file(
     fs::write(file_path, contents).map_err(|e| e.to_string())
 }
 
-// ── Commands: app info ────────────────────────────────────────────────────────
+// Commands: app info
 
 #[tauri::command]
 fn app_info() -> AppInfo {
@@ -120,7 +120,7 @@ fn app_info() -> AppInfo {
     }
 }
 
-// ── Commands: settings ────────────────────────────────────────────────────────
+// Commands: settings
 
 #[tauri::command]
 fn read_setting(app: tauri::AppHandle, key: String) -> Result<SettingValue, String> {
@@ -146,7 +146,7 @@ fn write_setting(
     })
 }
 
-// ── Commands: filesystem ──────────────────────────────────────────────────────
+// Commands: filesystem
 //
 // These commands expose plain file read/write for paths that the renderer
 // provides.  They are intentionally restricted to text (UTF-8) files to keep
@@ -163,7 +163,7 @@ fn write_text_file(path: String, contents: String) -> Result<(), String> {
     fs::write(&path, contents).map_err(|e| e.to_string())
 }
 
-// ── Commands: native dialogs ──────────────────────────────────────────────────
+// Commands: native dialogs
 //
 // The dialog plugin is already declared in the capabilities file under
 // "dialog:default".  That permission covers both open and save dialogs.
@@ -236,7 +236,7 @@ fn show_save_dialog(
     Ok(builder.blocking_save_file().map(|p| p.to_string()))
 }
 
-// ── Commands: shell / opener ──────────────────────────────────────────────────
+// Commands: shell / opener
 //
 // The opener plugin is already declared in the capabilities file under
 // "opener:default".  No additional capability scope is required.
@@ -258,7 +258,7 @@ fn open_path(app: tauri::AppHandle, path: String) -> Result<(), String> {
         .map_err(|e| e.to_string())
 }
 
-// ── Commands: window controls ─────────────────────────────────────────────────
+// Commands: window controls
 
 #[tauri::command]
 fn minimize_window(window: tauri::Window) -> Result<(), String> {
@@ -279,7 +279,7 @@ fn close_window(window: tauri::Window) -> Result<(), String> {
     window.close().map_err(|e| e.to_string())
 }
 
-// ── Commands: tab management (spike) ─────────────────────────────────────────
+// Commands: tab management (spike)
 
 #[tauri::command]
 fn create_tab(state: tauri::State<TabState>, url: String) -> Result<PrototypeTab, String> {
@@ -342,7 +342,7 @@ fn close_tab(state: tauri::State<TabState>, id: u64) -> Result<Vec<PrototypeTab>
     Ok(store.tabs.clone())
 }
 
-// ── Commands: migration introspection ─────────────────────────────────────────
+// Commands: migration introspection
 
 #[tauri::command]
 fn migration_features() -> Vec<MigrationFeature> {
@@ -398,7 +398,7 @@ fn migration_features() -> Vec<MigrationFeature> {
     ]
 }
 
-// ── App entry point ───────────────────────────────────────────────────────────
+// App entry point
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {

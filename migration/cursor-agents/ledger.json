@@ -30,6 +30,23 @@
       "createdAt": "2026-04-24T14:58:38.552Z",
       "updatedAt": "2026-04-24T15:08:06.154Z",
       "url": "https://cursor.com/agents/bc-308b2786-27df-4e9f-8e26-9f6379da65bc"
+    },
+    {
+      "taskId": "runtime-bridge",
+      "agentId": "bc-275138cf-91a2-49ac-867b-8239ba4e7a7b",
+      "runId": "run-bd641b94-febc-4aa3-adc0-664a3d3781a2",
+      "desiredBranchName": "cursor/tauri-runtime-bridge",
+      "model": "claude-sonnet-4-6",
+      "status": "FINISHED",
+      "validation": [
+        "npm run build",
+        "npm exec standard -- js/runtime/electronRuntime.js",
+        "npm run tauri:check",
+        "npm run validate:side-by-side"
+      ],
+      "createdAt": "2026-04-24T15:10:26.447Z",
+      "updatedAt": "2026-04-24T15:28:00.519Z",
+      "url": "https://cursor.com/agents/bc-275138cf-91a2-49ac-867b-8239ba4e7a7b"
     }
   ]
 }
