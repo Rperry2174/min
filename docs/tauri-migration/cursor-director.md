@@ -20,6 +20,8 @@ npm run cursor:director -- --run --task tauri-foundation
 
 Cloud mode requires `CURSOR_API_KEY` in the environment or `.env`. The script must not print the key. It validates the selected model against `/v1/models` before creating an agent.
 
+The live Cloud Agents API currently rejects `branchName` and `autoGenerateBranch`, so the director lets Cursor allocate the actual branch and records both the desired DAG branch and the returned branch in the ledger.
+
 ## Merge Discipline
 
 The director intentionally does not auto-merge branches. A completed cloud branch still needs local validation:

@@ -176,7 +176,7 @@ async function createCloudAgentForTask (apiKey, dag, task, dagPath) {
   const prompt = resolvePrompt(task, dagPath)
   const body = {
     prompt: {
-      text: prompt + '\n\nTask id: ' + task.id + '\nValidation commands: ' + task.validation.join(' && ')
+      text: prompt + '\n\nTask id: ' + task.id + '\nDesired branch name: ' + task.branchName + '\nValidation commands: ' + task.validation.join(' && ')
     },
     model: {
       id: task.model || dag.defaultModel
@@ -187,9 +187,7 @@ async function createCloudAgentForTask (apiKey, dag, task, dagPath) {
         startingRef: dag.startingRef
       }
     ],
-    branchName: task.branchName,
     autoCreatePR: false,
-    autoGenerateBranch: false,
     skipReviewerRequest: true
   }
 
@@ -250,6 +248,7 @@ async function runDirector () {
       taskId: task.id,
       agentId: created.agent.id,
       runId: created.run.id,
+      desiredBranchName: task.branchName,
       branchName: created.agent.branchName,
       model,
       status: terminalRun.status,
