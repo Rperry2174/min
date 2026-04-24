@@ -2112,6 +2112,7 @@ dependencies = [
  "tauri-plugin-os",
  "tauri-plugin-process",
  "tauri-plugin-shell",
+ "url",
 ]
 
 [[package]]
