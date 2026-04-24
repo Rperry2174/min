@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; frame-src http: https:; style-src 'self' 'unsafe-inline'; script-src 'self'" />
+    <title>Min Tauri Migration</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero">
+        <p class="eyebrow">Min Browser</p>
+        <h1>Tauri migration shell</h1>
+        <p>
+          This side-by-side app starts as a safe Tauri scaffold and grows feature parity
+          behind runtime bridges and validation gates.
+        </p>
+      </section>
+
+      <section class="grid">
+        <article>
+          <h2>Runtime</h2>
+          <dl id="runtime-info">
+            <div><dt>Host</dt><dd>Loading...</dd></div>
+          </dl>
+        </article>
+
+        <article>
+          <h2>Native Commands</h2>
+          <button id="refresh-app-info" type="button">Refresh app info</button>
+          <button id="minimize-window" type="button">Minimize</button>
+          <button id="toggle-maximize-window" type="button">Toggle maximize</button>
+          <pre id="app-info-output">Waiting for Tauri...</pre>
+        </article>
+
+        <article>
+          <h2>Settings Bridge</h2>
+          <label>
+            Demo setting
+            <input id="demo-setting" type="text" value="tauri migration" />
+          </label>
+          <button id="save-setting" type="button">Save setting</button>
+          <pre id="settings-output">Not saved yet.</pre>
+        </article>
+
+        <article>
+          <h2>Tab Webview Spike</h2>
+          <form id="tab-form">
+            <input id="tab-url" type="url" value="https://example.com" />
+            <button type="submit">Open prototype tab</button>
+          </form>
+          <div id="tab-list" class="tab-list"></div>
+          <iframe id="tab-preview" title="Prototype tab preview" sandbox="allow-same-origin allow-scripts"></iframe>
+        </article>
+      </section>
+    </main>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

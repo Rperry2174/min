@@ -1,0 +1,85 @@
+{
+  "name": "electron-to-tauri-migration",
+  "repoUrl": "https://github.com/Rperry2174/min.git",
+  "startingRef": "cursor/tauri-migration-integration",
+  "defaultModel": "claude-4-sonnet-thinking",
+  "tasks": [
+    {
+      "id": "root-architect",
+      "branchName": "cursor/tauri-root-architecture",
+      "model": "claude-4-sonnet-thinking",
+      "dependsOn": [],
+      "validation": [
+        "npm test",
+        "npm run build"
+      ],
+      "promptFile": "migration/cursor-agents/prompts/root-architect.md"
+    },
+    {
+      "id": "tauri-foundation",
+      "branchName": "cursor/tauri-foundation",
+      "model": "claude-4-sonnet-thinking",
+      "dependsOn": [
+        "root-architect"
+      ],
+      "validation": [
+        "npm run tauri:check"
+      ],
+      "promptFile": "migration/cursor-agents/prompts/tauri-foundation.md"
+    },
+    {
+      "id": "runtime-bridge",
+      "branchName": "cursor/tauri-runtime-bridge",
+      "model": "claude-4-sonnet-thinking",
+      "dependsOn": [
+        "tauri-foundation"
+      ],
+      "validation": [
+        "npm test",
+        "npm run build",
+        "npm run tauri:check"
+      ],
+      "promptFile": "migration/cursor-agents/prompts/runtime-bridge.md"
+    },
+    {
+      "id": "webview-spike",
+      "branchName": "cursor/tauri-webview-spike",
+      "model": "claude-4-sonnet-thinking",
+      "dependsOn": [
+        "runtime-bridge"
+      ],
+      "validation": [
+        "npm run tauri:check",
+        "npm run validate:side-by-side"
+      ],
+      "promptFile": "migration/cursor-agents/prompts/webview-spike.md"
+    },
+    {
+      "id": "feature-clusters",
+      "branchName": "cursor/tauri-feature-clusters",
+      "model": "claude-4-sonnet-thinking",
+      "dependsOn": [
+        "webview-spike"
+      ],
+      "validation": [
+        "npm test",
+        "npm run build",
+        "npm run tauri:check",
+        "npm run validate:side-by-side"
+      ],
+      "promptFile": "migration/cursor-agents/prompts/feature-clusters.md"
+    },
+    {
+      "id": "verification-demo",
+      "branchName": "cursor/tauri-verification-demo",
+      "model": "claude-4-sonnet-thinking",
+      "dependsOn": [
+        "feature-clusters"
+      ],
+      "validation": [
+        "npm run validate:side-by-side"
+      ],
+      "promptFile": "migration/cursor-agents/prompts/verification-demo.md"
+    }
+  ]
+}

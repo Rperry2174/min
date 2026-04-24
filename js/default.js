@@ -10,10 +10,11 @@ process.argv.forEach(function (arg) {
 
 window.windowId = globalArgs['window-id']
 
-window.electron = require('electron')
-window.fs = require('fs')
+window.minRuntime = require('runtime/electronRuntime.js')
+window.electron = window.minRuntime.electron
+window.fs = window.minRuntime.fs
 window.EventEmitter = require('events')
-window.ipc = electron.ipcRenderer
+window.ipc = window.minRuntime.ipc
 
 if (navigator.platform === 'MacIntel') {
   document.body.classList.add('mac')
